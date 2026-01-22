@@ -1,0 +1,160 @@
+{
+  "design_system_profile": {
+    "name": "Lumina_SaaS_Enterprise",
+    "description": "A refined, high-trust visual language designed for B2B SaaS and enterprise platforms. It merges clean Swiss-style typography with soft, modern 'glassmorphism' and ethereal gradient backdrops to communicate precision, security, and ease of use.",
+    "visual_foundation": {
+      "theme_mode": "Light (default) with high-contrast Dark Mode support",
+      "core_values": ["Clarity", "Trust", "Automation", "Fluidity"],
+      "aesthetic_signature": {
+        "gradients": "Soft, blurred radial gradients (Aurora Borealis effect) in background layers.",
+        "glassmorphism": "Translucent UI elements with backdrop blur (blur-md to blur-xl) and subtle white borders.",
+        "geometry": "Generous border-radius (12px to 32px) creating a friendly yet professional feel."
+      }
+    },
+    "color_system": {
+      "primary": {
+        "base": "#0F172A",
+        "hover": "#1E293B",
+        "text_on_primary": "#FFFFFF",
+        "role": "Brand anchor, primary actions, deep contrast headers"
+      },
+      "accent": {
+        "blue": "#3B82F6",
+        "indigo": "#4F46E5",
+        "purple": "#8B5CF6",
+        "teal": "#14B8A6",
+        "role": "Interactive elements, icons, data visualization, hero gradients"
+      },
+      "semantic": {
+        "success": "#22C55E",
+        "warning": "#EAB308",
+        "error": "#EF4444",
+        "info": "#3B82F6",
+        "role": "Status indicators, badges, alerts"
+      },
+      "neutral": {
+        "surface_0": "#FFFFFF",
+        "surface_50": "#F8FAFC",
+        "surface_100": "#F1F5F9",
+        "text_main": "#0F172A",
+        "text_secondary": "#475569",
+        "text_tertiary": "#94A3B8",
+        "border_light": "#E2E8F0",
+        "role": "Backgrounds, borders, hierarchy, text"
+      }
+    },
+    "typography": {
+      "font_family": "Plus Jakarta Sans, Inter, or similar geometric sans-serif",
+      "hierarchy": {
+        "hero_heading": {
+          "size": "text-5xl to text-7xl",
+          "weight": "ExtraBold (800)",
+          "line_height": "Tight (1.1)",
+          "letter_spacing": "Tight (-0.02em)"
+        },
+        "section_heading": {
+          "size": "text-3xl to text-4xl",
+          "weight": "Bold (700)",
+          "color": "Neutral-900"
+        },
+        "card_heading": {
+          "size": "text-xl",
+          "weight": "Bold (700)"
+        },
+        "body_lead": {
+          "size": "text-lg to text-xl",
+          "weight": "Regular (400)",
+          "color": "Neutral-600",
+          "line_height": "Relaxed"
+        },
+        "body_text": {
+          "size": "text-base (16px)",
+          "weight": "Regular (400)",
+          "color": "Neutral-600"
+        },
+        "label": {
+          "size": "text-xs to text-sm",
+          "weight": "SemiBold (600)",
+          "transform": "Uppercase",
+          "letter_spacing": "Wide"
+        }
+      }
+    },
+    "layout_grid": {
+      "container_max_width": "1280px (7xl)",
+      "gutters": "24px (px-6)",
+      "vertical_rhythm": "96px (py-24) for section spacing",
+      "grid_columns": {
+        "features": "Repeat(4, 1fr) on desktop, Repeat(2, 1fr) on tablet, 1fr on mobile",
+        "pricing": "Repeat(3, 1fr) with center card emphasis",
+        "workflow": "Repeat(4, 1fr) connected by visual line"
+      }
+    },
+    "ui_components": {
+      "buttons": {
+        "primary": {
+          "bg": "Primary Base",
+          "text": "White",
+          "radius": "Rounded-Full",
+          "padding": "px-8 py-4",
+          "shadow": "Shadow-lg + Color glow",
+          "hover": "Transform scale-105"
+        },
+        "secondary": {
+          "bg": "White/Transparent",
+          "border": "1px solid Neutral-200",
+          "text": "Neutral-700",
+          "radius": "Rounded-Full",
+          "hover": "bg-Neutral-50"
+        }
+      },
+      "cards": {
+        "feature_card": {
+          "bg": "White",
+          "border": "1px solid Neutral-100",
+          "radius": "Rounded-2xl",
+          "shadow": "Soft (shadow-sm)",
+          "hover": "Shadow-xl, TranslateY(-4px)"
+        },
+        "pricing_card": {
+          "bg": "White",
+          "radius": "Rounded-3xl",
+          "padding": "p-8",
+          "shadow": "Shadow-sm to Shadow-xl on hover"
+        }
+      },
+      "badges": {
+        "style": "Soft background (bg-opacity-10) with matching text color",
+        "radius": "Rounded-md or Rounded-full",
+        "font": "text-xs font-semibold"
+      },
+      "icons": {
+        "style": "Rounded / Filled or Outline",
+        "wrapper": "Square container with rounded corners (rounded-xl), soft colored background"
+      }
+    },
+    "visual_effects": {
+      "depth": {
+        "level_1": "Flat (Background)",
+        "level_2": "Card (Shadow-sm, Border)",
+        "level_3": "Dropdown/Modal (Shadow-xl, Backdrop blur)",
+        "level_4": "Floating Elements (Hero Image) - Shadow-2xl"
+      },
+      "gradients": {
+        "text_highlight": "bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600",
+        "background_glow": "Radial blobs (blue/indigo/purple) with high blur (blur-3xl) and low opacity"
+      },
+      "animations": {
+        "hover": "Transition-all duration-300 ease-in-out",
+        "micro_interaction": "Scale up (1.05) on active elements"
+      }
+    },
+    "pattern_library": {
+      "hero_layout": "Center aligned text -> Call to Action buttons -> Large centralized visual dashboard preview.",
+      "dashboard_preview": "Window-like container with traffic-light dots, sidebar navigation simulation, and data tables.",
+      "workflow_steps": "Horizontal alignment with connecting lines or sequential numbering.",
+      "social_proof_bar": "Grayscale logos, reduced opacity (60%), evenly spaced.",
+      "accordion_faq": "Clean list, expand/collapse icon on right, smooth height transition."
+    }
+  }
+}
