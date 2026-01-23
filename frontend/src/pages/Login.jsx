@@ -1,31 +1,32 @@
 import { useState } from 'react'
+import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 
 export default function Login() {
-  const [isLogin, setIsLogin] = useState(true)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const [message, setMessage] = useState('')
 
-  const { signIn, signUp } = useAuth()
+  const { signIn } = useAuth()
+  const navigate = useNavigate()
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
-    setMessage('')
     setLoading(true)
 
     try {
-      if (isLogin) {
-        const { error } = await signIn(email, password)
-        if (error) throw error
-      } else {
-        const { error } = await signUp(email, password)
-        if (error) throw error
-        setMessage('Check your email for confirmation link!')
+      const { data, error } = await signIn(email, password)
+      if (error) throw error
+
+      // Check if email is verified
+      if (data?.user && !data.user.email_confirmed_at) {
+        setError('Please verify your email first. Check your inbox for the verification link.')
+        return
       }
+
+      navigate('/dashboard')
     } catch (err) {
       setError(err.message)
     } finally {
@@ -45,7 +46,7 @@ export default function Login() {
         {/* Card */}
         <div className="bg-slate-800 rounded-2xl p-8 shadow-xl">
           <h2 className="text-xl font-semibold text-white mb-6">
-            {isLogin ? 'Sign in to your account' : 'Create new account'}
+            Sign in to your account
           </h2>
 
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -62,7 +63,12 @@ export default function Login() {
             </div>
 
             <div>
-              <label className="block text-sm text-slate-400 mb-1">Password</label>
+              <div className="flex justify-between items-center mb-1">
+                <label className="block text-sm text-slate-400">Password</label>
+                <Link to="/forgot-password" className="text-sm text-blue-400 hover:text-blue-300">
+                  Forgot password?
+                </Link>
+              </div>
               <input
                 type="password"
                 value={password}
@@ -80,28 +86,19 @@ export default function Login() {
               </div>
             )}
 
-            {message && (
-              <div className="text-green-400 text-sm bg-green-400/10 px-4 py-2 rounded-lg">
-                {message}
-              </div>
-            )}
-
             <button
               type="submit"
               disabled={loading}
               className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition disabled:opacity-50"
             >
-              {loading ? 'Loading...' : isLogin ? 'Sign In' : 'Sign Up'}
+              {loading ? 'Signing in...' : 'Sign In'}
             </button>
           </form>
 
           <div className="mt-6 text-center">
-            <button
-              onClick={() => setIsLogin(!isLogin)}
-              className="text-blue-400 hover:text-blue-300 text-sm"
-            >
-              {isLogin ? "Don't have an account? Sign up" : 'Already have an account? Sign in'}
-            </button>
+            <Link to="/signup" className="text-blue-400 hover:text-blue-300 text-sm">
+              Don't have an account? Sign up
+            </Link>
           </div>
         </div>
       </div>
