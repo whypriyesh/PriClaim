@@ -1,6 +1,8 @@
 import { useState, useRef } from 'react'
+import { useAuth } from '../../context/AuthContext'
 
 export default function FileUpload({ onUploadSuccess, onUploadError }) {
+  const { session } = useAuth()
   const [isDragging, setIsDragging] = useState(false)
   const [file, setFile] = useState(null)
   const [uploading, setUploading] = useState(false)
@@ -45,34 +47,63 @@ export default function FileUpload({ onUploadSuccess, onUploadError }) {
     setFile(file)
   }
 
+  const [uploadProgress, setUploadProgress] = useState(0)
+
   const handleUpload = async () => {
     if (!file) return
 
     setUploading(true)
     setError('')
+    setUploadProgress(0)
 
     const formData = new FormData()
     formData.append('file', file)
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/ingest`, {
-        method: 'POST',
-        body: formData,
+      // Use XMLHttpRequest for progress tracking
+      const xhr = new XMLHttpRequest()
+
+      xhr.upload.addEventListener('progress', (e) => {
+        if (e.lengthComputable) {
+          const percentComplete = (e.loaded / e.total) * 100
+          setUploadProgress(Math.round(percentComplete))
+        }
       })
 
-      const data = await response.json()
+      xhr.addEventListener('load', () => {
+        if (xhr.status === 200) {
+          const data = JSON.parse(xhr.responseText)
+          setFile(null)
+          setUploadProgress(0)
+          onUploadSuccess?.(data)
+        } else {
+          const errorData = JSON.parse(xhr.responseText)
+          throw new Error(errorData.detail || 'Upload failed')
+        }
+        setUploading(false)
+      })
 
-      if (!response.ok) {
-        throw new Error(data.detail || 'Upload failed')
+      xhr.addEventListener('error', () => {
+        setError('Upload failed. Please try again.')
+        setUploading(false)
+        setUploadProgress(0)
+        onUploadError?.(new Error('Network error'))
+      })
+
+      xhr.open('POST', `${import.meta.env.VITE_API_URL}/api/v1/ingest`)
+
+      // Add auth token to request
+      if (session?.access_token) {
+        xhr.setRequestHeader('Authorization', `Bearer ${session.access_token}`)
       }
 
-      setFile(null)
-      onUploadSuccess?.(data)
+      xhr.send(formData)
+
     } catch (err) {
       setError(err.message)
-      onUploadError?.(err)
-    } finally {
       setUploading(false)
+      setUploadProgress(0)
+      onUploadError?.(err)
     }
   }
 
@@ -86,8 +117,8 @@ export default function FileUpload({ onUploadSuccess, onUploadError }) {
         onClick={() => fileInputRef.current?.click()}
         className={`
           border-2 border-dashed rounded-2xl p-12 text-center cursor-pointer transition-all
-          ${isDragging 
-            ? 'border-blue-500 bg-blue-50' 
+          ${isDragging
+            ? 'border-blue-500 bg-blue-50'
             : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'
           }
           ${file ? 'border-green-500 bg-green-50' : ''}
@@ -123,14 +154,30 @@ export default function FileUpload({ onUploadSuccess, onUploadError }) {
         </div>
       )}
 
+      {/* Upload Progress Bar */}
+      {uploading && uploadProgress > 0 && (
+        <div className="mt-4">
+          <div className="flex justify-between items-center mb-2">
+            <span className="text-sm text-slate-600">Uploading...</span>
+            <span className="text-sm font-medium text-primary">{uploadProgress}%</span>
+          </div>
+          <div className="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
+            <div
+              className="bg-primary h-2 rounded-full transition-all duration-300 ease-out"
+              style={{ width: `${uploadProgress}%` }}
+            />
+          </div>
+        </div>
+      )}
+
       {/* Upload Button */}
       {file && (
         <button
           onClick={handleUpload}
           disabled={uploading}
-          className="w-full mt-4 py-3 bg-primary text-white font-medium rounded-xl hover:bg-primary-hover transition disabled:opacity-50"
+          className="w-full mt-4 py-3 bg-primary text-white font-medium rounded-xl hover:bg-primary-hover transition disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {uploading ? 'Uploading...' : 'Upload Claim'}
+          {uploading ? `Uploading... ${uploadProgress}%` : 'Upload Claim'}
         </button>
       )}
     </div>

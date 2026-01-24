@@ -7,6 +7,7 @@ import CheckEmail from './pages/CheckEmail'
 import ForgotPassword from './pages/ForgotPassword'
 import ResetPassword from './pages/ResetPassword'
 import Dashboard from './pages/Dashboard'
+import ClaimDetail from './pages/ClaimDetail'
 
 // Protected route - requires authenticated AND verified user
 function ProtectedRoute({ children }) {
@@ -76,6 +77,9 @@ function App() {
         {/* Protected pages */}
         <Route path="/dashboard" element={
           <ProtectedRoute><Dashboard /></ProtectedRoute>
+        } />
+        <Route path="/claims/:claimId" element={
+          <ProtectedRoute><ClaimDetail /></ProtectedRoute>
         } />
       </Routes>
     </BrowserRouter>

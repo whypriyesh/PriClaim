@@ -1,29 +1,23 @@
 # PriClaim
 
-PriClaim is an AI-powered medical insurance claim auditing platform.
-It ingests medical claim PDFs, audits them against insurance policies using
-retrieval-augmented generation (RAG), and produces risk-scored audit reports
-with explainable policy evidence.
+AI-driven medical insurance claim auditing platform.
 
-## MVP Scope
-- Single hospital
-- Desktop-first
-- Admin + User roles
-- PDF-only claims
-- Human-in-the-loop corrections
+> **Status:** MVP Implementation Phase
+> **Documentation:** See [`Docs/project_status.md`](Docs/project_status.md) for architecture, progress, and next steps.
 
-## Tech Stack
-**Backend**
-- FastAPI (Python 3.11)
-- Supabase (Postgres + Auth + Storage)
-- AWS Textract (OCR)
-- pgvector (policy embeddings)
-- Groq (Llama 3 70B)
+## Quick Start
 
-**Frontend**
-- React 18
-- Vite
-- Tailwind CSS
-- Supabase Auth
+### Frontend
+```bash
+cd frontend
+npm install
+npm run dev
+```
 
-## Repository Structure
+### Backend
+```bash
+cd backend
+# Activate venv
+.\venv\Scripts\activate
+uvicorn app.main:app --reload
+```
