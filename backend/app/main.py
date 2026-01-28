@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.api.routes import health, claims
+from app.api.routes import health, claims, policies
 
 from app.core.config import settings
 
@@ -22,3 +22,4 @@ app.add_middleware(
 #routes
 app.include_router(health.router, tags=["Health"])
 app.include_router(claims.router, tags=["Claims"])
+app.include_router(policies.router, prefix="/api/v1", tags=["Policies"])

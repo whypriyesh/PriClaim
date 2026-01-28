@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { ChevronDown } from 'lucide-react'
 
 export default function FAQ() {
   const faqs = [
@@ -21,12 +22,12 @@ export default function FAQ() {
   ]
 
   return (
-    <section id="faq" className="py-24 bg-white">
+    <section id="faq" className="py-24 bg-slate-950 border-t border-white/5">
       <div className="max-w-3xl mx-auto px-6">
-        <h2 className="text-3xl font-bold text-center text-slate-900 mb-12">
+        <h2 className="text-3xl font-bold text-center text-white mb-12">
           Frequently Asked Questions
         </h2>
-        
+
         <div className="space-y-4">
           {faqs.map((faq, i) => (
             <FAQItem key={i} question={faq.question} answer={faq.answer} />
@@ -41,20 +42,18 @@ function FAQItem({ question, answer }) {
   const [isOpen, setIsOpen] = useState(false)
 
   return (
-    <div 
-      className={`rounded-2xl p-6 shadow-sm transition-all duration-300 cursor-pointer
-        ${isOpen ? 'bg-white shadow-md' : 'bg-slate-50 hover:bg-slate-100'}`}
+    <div
+      className={`rounded-2xl p-6 transition-all duration-300 cursor-pointer border border-transparent
+        ${isOpen ? 'bg-white/10 border-white/10' : 'bg-white/5 hover:bg-white/[0.07] hover:border-white/5'}`}
       onClick={() => setIsOpen(!isOpen)}
     >
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-medium text-slate-900">{question}</h3>
-        <span className={`material-icons-round transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}>
-          expand_more
-        </span>
+        <h3 className="text-lg font-medium text-white">{question}</h3>
+        <ChevronDown className={`w-5 h-5 text-slate-400 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
       </div>
-      
+
       <div className={`overflow-hidden transition-all duration-300 ${isOpen ? 'max-h-40 mt-4' : 'max-h-0'}`}>
-        <p className="text-slate-600 leading-relaxed">{answer}</p>
+        <p className="text-slate-400 leading-relaxed">{answer}</p>
       </div>
     </div>
   )

@@ -37,10 +37,11 @@ async def verify_token(
         
         user_data = {
             "user_id": user_response.user.id,
-            "email": user_response.user.email
+            "email": user_response.user.email,
+            "role": user_response.user.user_metadata.get("role", "user")  # Extract role
         }
         
-        logger.info(f"Authenticated user: {user_data['email']}")
+        logger.info(f"Authenticated user: {user_data['email']} (role: {user_data['role']})")
         return user_data
         
     except HTTPException:
@@ -51,3 +52,30 @@ async def verify_token(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=f"Authentication failed: {str(e)}"
         )
+
+
+async def verify_admin(
+    user: dict = Depends(verify_token)
+) -> dict:
+    """
+    Verify that the authenticated user has admin role.
+    
+    This middleware should be used on admin-only endpoints.
+    
+    Args:
+        user: User data from verify_token
+        
+    Returns:
+        dict: User information (already verified as admin)
+        
+    Raises:
+        HTTPException: 403 if user is not admin
+    """
+    if user.get("role") != "admin":
+        logger.warning(f"User {user.get('email')} attempted admin action without admin role")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin access required"
+        )
+    
+    return user

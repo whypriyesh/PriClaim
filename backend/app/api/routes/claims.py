@@ -41,6 +41,21 @@ async def ingest_claim(
     logger.info(f"User {user['email']} uploading claim {job_id}")
     
     try:
+        # Fetch policy text if policy_id provided
+        policy_text = None
+        if policy_id:
+            logger.info(f"Fetching policy {policy_id} for claim {job_id}")
+            policy_result = supabase.table("insurance_policies")\
+                .select("policy_text, name, company_name")\
+                .eq("id", policy_id)\
+                .execute()
+            
+            if policy_result.data and len(policy_result.data) > 0:
+                policy_text = policy_result.data[0]["policy_text"]
+                logger.info(f"Attached policy '{policy_result.data[0]['name']}' to claim {job_id}")
+            else:
+                logger.warning(f"Policy {policy_id} not found, proceeding without policy")
+        
         # Upload to storage
         upload_result = upload_claim_file(content, file.filename, user_id)
         
@@ -51,6 +66,7 @@ async def ingest_claim(
             "file_path": upload_result["file_path"],
             "status": "queued",
             "uploaded_by": user_id,
+            "policy_text": policy_text,  # Attach policy text if available
         }
         
         result = supabase.table("claims").insert(claim_data).execute()

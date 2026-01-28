@@ -1,0 +1,134 @@
+PriClaim Technical Report
+=========================
+
+Date: Jan 28, 2026
+System: PriClaim - AI-Powered Medical Insurance Claim Auditing Platform
+
+1. EXECUTIVE SUMMARY
+--------------------
+PriClaim is a web-based application designed to automate the auditing of medical insurance claims. The system processes PDF claim documents, extracts structured data using a hybrid OCR/LLM pipeline, and cross-references them against insurance policies to assess risk and validity. It utilizes a modern stack comprising a React frontend, FastAPI backend, Supabase for data/storage, and Groq for high-performance AI inference.
+
+2. SYSTEM ARCHITECTURE & PROJECT STRUCTURE
+------------------------------------------
+The repository follows a standard monorepo structure:
+- root/
+  - frontend/ (React + Vite)
+  - backend/ (FastAPI + Python)
+  - docs/ (Project documentation)
+
+The system operates on a client-server model:
+- Frontend: Single Page Application (SPA) served via Vite.
+- Backend: RESTful API managing business logic, file processing, and AI orchestration.
+- Database & Auth: Supabase (PostgreSQL) handles data persistence and user management.
+- AI Engine: External calls to Groq API for Large Language Model (LLM) inference.
+
+3. FRONTEND IMPLEMENTATION
+--------------------------
+Stack:
+- React 19, Vite 5
+- Styling: Tailwind CSS, Framer Motion (animations)
+- State Management: React Context (AuthContext), Local State (useState)
+- Routing: React Router DOM 7
+- UI Components: Lucide React icons, Recharts (charts), Sonner (toasts)
+
+Key Modules:
+- Auth Wrapper: `AuthContext` provides session state across the app.
+- Route Protection: HOCs like `ProtectedRoute`, `AdminRoute`, and `PublicRoute` control access based on authentication status and user roles (admin vs. user).
+- Pages:
+  - `Dashboard`: Main view for users to see claim history.
+  - `ClaimDetail`: Detailed view of analysis results (risk score, verdict, findings).
+  - `PolicyManagement`: Admin-only interface for creating/managing insurance policies.
+  - `Landing`, `Login`, `Signup`: Public-facing pages.
+
+Data Flow:
+- Data is fetched via standard `fetch` API calls to the backend, authenticated with Supabase session tokens (`Bearer` token).
+- Note: Claim details are currently retrieved by fetching *all* user claims and filtering client-side, representing a potential scalability bottleneck.
+
+4. BACKEND IMPLEMENTATION
+-------------------------
+Stack:
+- Framework: FastAPI (Python 3.12+)
+- Server: Uvicorn
+- Dependencies: Pydantic (validation), Supabase-py (DB client)
+
+API Services:
+- `app/api/routes`:
+  - `claims.py`: Handle file uploads (`/ingest`) and listing claims.
+  - `policies.py`: CRUD operations for insurance policies (Admin only).
+  - `health.py`: System health checks.
+
+Background Processing:
+- Implementation: Custom threading-based worker (`process_claim_with_retry` in `workers/claim_processor.py`).
+- Mechanism: 
+  1. POST `/ingest` accepts a file, saves to Supabase Storage, and creates a DB record with status `queued`.
+  2. A background thread immediately triggers processing (with retry logic: 3 attempts, exponential backoff).
+  3. Processing stages: `queued` -> `text_extraction` -> `completed` (or `failed`).
+
+5. AI & MACHINE LEARNING PIPELINE
+---------------------------------
+The core value proposition relies on a multi-stage analysis pipeline:
+
+Stage 1: Text Extraction (`text_extractor.py`)
+- Hybrid approach:
+  1. Attempt text extraction via `pdfplumber` (fast, efficient for digital PDFs).
+  2. Fallback to Optical Character Recognition (OCR) via `pytesseract`/`pdf2image` if digital extraction fails (for scanned images).
+
+Stage 2: Normalization (`claim_normalizer.py`)
+- Purpose: Convert raw text into structured JSON (Hospital Name, Patient, Line Items, Amounts).
+- Primary Method: Groq LLM (Model: `llama-3.1-8b-instant`) with a confidence threshold of 0.5.
+- Fallback Method: Regex pattern matching if LLM confidence is low or fails.
+
+Stage 3: Audit Logic (`audit_engine.py`)
+- Purpose: Verify structured claim data against a specific insurance policy.
+- Model: Groq LLM (Model: `llama-3.3-70b-versatile`).
+- Context: Injects both the structured claim data and the policy text (truncated to ~3000 chars) into the prompt.
+- Output: Verdict (APPROVED/REJECTED/NEEDS_REVIEW), Risk Score (0-100), and specific findings (e.g., "missing document", "pre-existing condition").
+
+6. DATABASE & STORAGE (SUPABASE)
+--------------------------------
+Database Schema (PostgreSQL):
+- `claims`: Stores workflow state.
+  - Columns: `id` (UUID), `file_path`, `status` (enum), `extracted_data` (JSONB), `audit_result` (JSONB), `uploaded_by` (FK to auth.users).
+- `insurance_policies`: Stores reference policies.
+  - Columns: `id`, `name`, `policy_text`, `coverage_limit`, `created_by`.
+
+Object Storage:
+- Bucket: `claim-documents` (Stores raw PDF uploads).
+
+7. AUTHENTICATION & SECURITY
+----------------------------
+- Identity Provider: Supabase Auth.
+- Flows: Signup, Login, Email Verification, Password Reset.
+- Permissions: 
+  - Backend uses `verify_token` dependency to enforce valid JWTs on route access.
+  - `verify_admin` ensures only users with `role: 'admin'` in metadata can access policy endpoints.
+- CORS: Enabled for configured origins in `settings`.
+
+8. DEPLOYMENT & CONFIGURATION
+-----------------------------
+- Configuration: Controlled via `.env` files (Supabase keys, Groq API key, CORS origins).
+- Execution: 
+  - Frontend: `npm run dev` (Vite dev server).
+  - Backend: `uvicorn app.main:app --reload`.
+- Dependencies: `requirements.txt` for Python, `package.json` for Node.
+
+9. CURRENT FEATURE SET & CONSTRAINTS
+------------------------------------
+Supported Workflows:
+- User Registration/Login (with email verification).
+- PDF Claim Upload (Max 10MB).
+- Automated text extraction (digital & scanned PDFs).
+- Automated Policy Auditing (if policy is selected or generic default).
+- Admin management of Policy documents.
+- Detailed visual report of audit findings.
+
+Implicit Constraints & Assumptions:
+- System currently assumes a single worker instance (threading based). Scalability to multiple instances would require an external queue (e.g., Redis/Celery).
+- PDF processing is synchronous within the background thread; heavy load could block the server if not deployed with multiple workers/processes.
+- Frontend assumes the user's claim list is small enough to fetch entirely on every load.
+
+10. OBSERVATIONS
+----------------
+- **Robust Fallbacks**: The system handles OCR failure and LLM extraction failure gracefully with regex fallbacks.
+- **Modern Stack**: Usage of `llama-3.3-70b` and `llama-3.1-8b` via Groq indicates a focus on low-latency, high-performance AI inference.
+- **Developer Experience**: Well-structured code with clear separation of concerns (Services vs. Routes vs. Workers).

@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import Layout from './components/layout/Layout'
 import { useAuth } from './context/AuthContext'
 import Landing from './pages/Landing'
 import Login from './pages/Login'
@@ -8,6 +9,7 @@ import ForgotPassword from './pages/ForgotPassword'
 import ResetPassword from './pages/ResetPassword'
 import Dashboard from './pages/Dashboard'
 import ClaimDetail from './pages/ClaimDetail'
+import PolicyManagement from './pages/PolicyManagement'
 
 // Protected route - requires authenticated AND verified user
 function ProtectedRoute({ children }) {
@@ -15,7 +17,7 @@ function ProtectedRoute({ children }) {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
         <div className="text-white">Loading...</div>
       </div>
     )
@@ -34,13 +36,44 @@ function ProtectedRoute({ children }) {
   return children
 }
 
+// Admin route - requires authenticated, verified, AND admin user
+function AdminRoute({ children }) {
+  const { user, loading } = useAuth()
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+        <div className="text-white">Loading...</div>
+      </div>
+    )
+  }
+
+  // No user - redirect to login
+  if (!user) {
+    return <Navigate to="/login" />
+  }
+
+  // User exists but email not verified - redirect to login
+  if (!user.email_confirmed_at) {
+    return <Navigate to="/login" />
+  }
+
+  // Check if user is admin
+  const userRole = user?.user_metadata?.role
+  if (userRole !== 'admin') {
+    return <Navigate to="/dashboard" />
+  }
+
+  return children
+}
+
 // Public route - redirects authenticated users to dashboard
 function PublicRoute({ children }) {
   const { user, loading } = useAuth()
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
         <div className="text-white">Loading...</div>
       </div>
     )
@@ -57,31 +90,38 @@ function PublicRoute({ children }) {
 function App() {
   return (
     <BrowserRouter>
-      <Routes>
-        {/* Public pages */}
-        <Route path="/" element={<Landing />} />
+      <Layout>
+        <Routes>
+          {/* Public pages */}
+          <Route path="/" element={<Landing />} />
 
-        {/* Auth pages - redirect if already logged in */}
-        <Route path="/login" element={
-          <PublicRoute><Login /></PublicRoute>
-        } />
-        <Route path="/signup" element={
-          <PublicRoute><Signup /></PublicRoute>
-        } />
-        <Route path="/check-email" element={<CheckEmail />} />
-        <Route path="/forgot-password" element={
-          <PublicRoute><ForgotPassword /></PublicRoute>
-        } />
-        <Route path="/reset-password" element={<ResetPassword />} />
+          {/* Auth pages - redirect if already logged in */}
+          <Route path="/login" element={
+            <PublicRoute><Login /></PublicRoute>
+          } />
+          <Route path="/signup" element={
+            <PublicRoute><Signup /></PublicRoute>
+          } />
+          <Route path="/check-email" element={<CheckEmail />} />
+          <Route path="/forgot-password" element={
+            <PublicRoute><ForgotPassword /></PublicRoute>
+          } />
+          <Route path="/reset-password" element={<ResetPassword />} />
 
-        {/* Protected pages */}
-        <Route path="/dashboard" element={
-          <ProtectedRoute><Dashboard /></ProtectedRoute>
-        } />
-        <Route path="/claims/:claimId" element={
-          <ProtectedRoute><ClaimDetail /></ProtectedRoute>
-        } />
-      </Routes>
+          {/* Protected pages */}
+          <Route path="/dashboard" element={
+            <ProtectedRoute><Dashboard /></ProtectedRoute>
+          } />
+          <Route path="/claims/:claimId" element={
+            <ProtectedRoute><ClaimDetail /></ProtectedRoute>
+          } />
+
+          {/* Admin pages */}
+          <Route path="/admin/policies" element={
+            <AdminRoute><PolicyManagement /></AdminRoute>
+          } />
+        </Routes>
+      </Layout>
     </BrowserRouter>
   )
 }
